@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05070d">
+<title>eFootball League</title>
+
+<style>
+:root{
+  --bg:#05070d; --card:#0e1a35; --card2:#132246; --line:#24376a;
+  --green:#22c55e; --text:#f1f5ff; --muted:#7f8db0; --red:#ef4444;
+}
+*{box-sizing:border-box;margin:0}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);min-height:100vh;line-height:1.35;
+  background:radial-gradient(1000px 420px at 50% -200px,#10265a 0,var(--bg) 62%) fixed,var(--bg);
+  padding-bottom:30px;
+}
+header{padding:16px 16px 6px;max-width:760px;margin:auto;display:flex;align-items:center;gap:10px}
+header svg{width:30px;height:30px;color:var(--green);flex:none}
+header h1{font-size:20px}
+header small{display:block;color:var(--muted);font-size:12px}
+.tabs{position:sticky;top:0;z-index:5;background:rgba(5,7,13,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tabs div{max-width:760px;margin:auto;display:flex;gap:8px;padding:10px 16px}
+.tab{flex:1;padding:10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:600 14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.tab.on{background:var(--green);border-color:var(--green);color:#04210f}
+main{max-width:760px;margin:auto;padding:14px 16px}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font:600 13px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.chip.on{color:#fff;background:var(--card2);border-color:#3b5599}
+.problems{background:#3a1216;border:1px solid #6b1d25;color:#ffd0d0;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.problems b{display:block;margin-bottom:4px}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+
+/* Match card */
+.m{display:grid;grid-template-columns:1fr 128px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 0 14px 14px;margin-bottom:12px}
+.players{display:grid;gap:14px;align-content:center;min-width:0;padding-right:8px}
+.row{display:flex;align-items:center;gap:12px;min-width:0}
+.row.lose .nm,.row.lose .sc{color:var(--muted);font-weight:500}
+.av{width:30px;height:30px;border-radius:50%;border:2px solid;display:grid;place-items:center;font-size:13px;font-weight:800;flex:none}
+.nm{flex:1;min-width:0;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc{width:26px;text-align:right;font-size:19px;font-weight:800}
+.ar{width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:9px solid transparent;flex:none}
+.ar.on{border-right-color:var(--green)}
+.side{border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:4px 8px}
+.st{font-size:14px;color:var(--muted);font-weight:600}
+.st.live{color:var(--green);display:flex;align-items:center;gap:6px;font-weight:800}
+.st.live b{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.2}}
+.dt{font-size:15px;color:var(--muted)}
+.dt.big{color:var(--text);font-weight:600}
+.tm{font-size:15px;color:var(--text);font-weight:600}
+.st+.dt+.tm{color:var(--muted);font-weight:500}
+
+/* VIDEO LINK BUTTON: ADDED */
+.video-btn{
+  display:inline-block;
+  width:fit-content;
+  margin-top:2px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:#22c55e;
+  color:#04210f;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:800;
+}
+
+/* Points table */
+.leader{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0f3a24,var(--card));border:1px solid #1d5a38;border-radius:16px;padding:14px;margin-bottom:14px}
+.leader .lt{font-size:11px;color:#9fe0b6;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.leader .ln{font-size:19px;font-weight:800}
+.leader .lp{margin-left:auto;text-align:right}
+.leader .lp b{font-size:28px;display:block;line-height:1}
+.leader .lp small{color:var(--muted);font-size:11px}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 5px;text-align:center;white-space:nowrap}
+th{color:var(--muted);font-size:11px;letter-spacing:.05em;background:#0b1630}
+td:nth-child(2),th:nth-child(2){text-align:left}
+td:nth-child(2){font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+tbody tr+tr td{border-top:1px solid var(--line)}
+td.p{font-weight:800;font-size:15px}
+tr.lead td{background:rgba(34,197,94,.07)}
+tr.lead td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.pos{color:var(--green)} .neg{color:#ff7b7b}
+.legend{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+</style>
+</head>
+
+<body>
+
+<header>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/><path d="M12 7V2.5M16 10l4.5-1M14.5 15l2.5 4M9.5 15L7 19M8 10L3.5 9"/></svg>
+  <div><h1 id="title">eFootball League</h1><small id="season"></small></div>
+</header>
+
+<div class="tabs"><div>
+  <button class="tab on" id="tabMatches">Matches</button>
+  <button class="tab" id="tabTable">Points Table</button>
+</div></div>
+
+<main id="app"><div class="empty">Loading...</div></main>
+
+<script>
+/* ==========================================================
+   EDIT MATCH DETAILS HERE
+   VIDEO LINK ADD CHEYYAN: video: "YouTube URL"
+   Video illenkil video: "" kodukkuka.
+   ========================================================== */
+
+const LEAGUE_NAME = "eFootball League";
+const SEASON = "Season 2026";
+
+const MATCHES = [
+  {
+    p1: "Arjun",
+    p2: "Nihal",
+    s1: null,
+    s2: null,
+    date: "2026-10-26",
+    time: "",
+    // VIDEO LINK ADD HERE
+    video: " "
+  },
+  {
+    p1: "irshad",
+    p2: "Rohan",
+    s1: null,
+    s2: null,
+    date: "2026-10-20",
+    time: "",
+    // VIDEO LINK ADD HERE
+    video: ""
+  },
+  {
+    p1: "minhaj",
+    p2: "Arjun",
+    s1: null,
+    s2: null,
+    date: "2026-10-22",
+    time: "",
+    // VIDEO LINK ADD HERE
+    video: ""
+  },
+  {
+    p1: "Nihal",
+    p2: "Fahad",
+    s1: null,
+    s2: null,
+    date: "2026-10-25",
+    time: "",
+    // VIDEO LINK ADD HERE
+    video: ""
+  },
+  {
+    p1: "suhail",
+    p2: "Fahad",
+    s1: null,
+    s2: null,
+    date: "2026-10-29",
+    time: "5:00 am",
+    // VIDEO LINK ADD HERE
+    video: ""
+  },
+  {
+    p1: "shadil",
+    p2: "Nihal",
+    s1: null,
+    s2: null,
+    date: "2026-11-02",
+    time: "5:30 am",
+    // VIDEO LINK ADD HERE
+    video: ""
+  }
+];
+
+/* ================= DO NOT EDIT BELOW ================= */
+
+const $ = s => document.querySelector(s);
+
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+}[c]));
+
+const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function parseDate(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s ?? '').trim());
+  if (!m) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return (d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3]) ? d : null;
+}
+
+function dateLabel(d) {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  if (Math.round((d - t) / 86400000) === 0) return 'Today';
+  return `${WD[d.getDay()]}, ${d.getDate()} ${MO[d.getMonth()]}`;
+}
+
+const toNum = v => (v === null || v === undefined || String(v).trim() === '') ? null : Number(v);
+
+function prepare(rows) {
+  const problems = [], list = [];
+
+  rows.forEach((m, i) => {
+    const n = i + 1;
+    const p1 = String(m.p1 ?? '').trim();
+    const p2 = String(m.p2 ?? '').trim();
+    const d = parseDate(m.date);
+    let s1 = toNum(m.s1), s2 = toNum(m.s2);
+    let err = '';
+
+    if (!p1 || !p2) err = 'player name illa';
+    else if (p1.toLowerCase() === p2.toLowerCase()) err = 'randu side-ilum ore player aanu';
+    else if (!d) err = 'date ingane venam: "2026-10-29"';
+    else if ((s1 === null) !== (s2 === null)) err = 'randu score-um kodukku (allenkil randum null aakku)';
+    else if ([s1, s2].some(s => s !== null && (!Number.isInteger(s) || s < 0))) err = 'score 0 allenkil whole number aavanam';
+
+    if (err) {
+      problems.push(`Match ${n} (${p1 || '?'} vs ${p2 || '?'}): ${err}`);
+      return;
+    }
+
+    const live = m.live === true;
+    if (live) {
+      s1 = s1 ?? 0;
+      s2 = s2 ?? 0;
+    }
+
+    list.push({
+      n, p1, p2, s1, s2, d,
+      time: String(m.time ?? '').trim(),
+      video: String(m.video ?? '').trim(),
+      status: live ? 'live' : (s1 !== null ? 'ft' : 'upcoming')
+    });
+  });
+
+  list.sort((a, b) => a.d - b.d || a.n - b.n);
+  return { list, problems };
+}
+
+/* Points table: FT match mathram count cheyyum */
+function computeTable(list) {
+  const rows = new Map();
+
+  const get = name => {
+    const k = name.toLowerCase();
+    if (!rows.has(k)) rows.set(k, {
+      name, mp: 0, w: 0, d: 0, l: 0,
+      gf: 0, ga: 0, gd: 0, pts: 0
+    });
+    return rows.get(k);
+  };
+
+  list.forEach(m => {
+    get(m.p1);
+    get(m.p2);
+  });
+
+  list.filter(m => m.status === 'ft').forEach(m => {
+    const a = get(m.p1), b = get(m.p2);
+
+    a.mp++;
+    b.mp++;
+    a.gf += m.s1;
+    a.ga += m.s2;
+    b.gf += m.s2;
+    b.ga += m.s1;
+
+    if (m.s1 > m.s2) {
+      a.w++;
+      b.l++;
+      a.pts += 3;
+    } else if (m.s1 < m.s2) {
+      b.w++;
+      a.l++;
+      b.pts += 3;
+    } else {
+      a.d++;
+      b.d++;
+      a.pts++;
+      b.pts++;
+    }
+  });
+
+  const out = [...rows.values()];
+  out.forEach(r => { r.gd = r.gf - r.ga; });
+
+  out.sort((x, y) =>
+    y.pts - x.pts ||
+    y.gd - x.gd ||
+    y.gf - x.gf ||
+    x.name.localeCompare(y.name)
+  );
+
+  return out;
+}
+
+function avatar(name) {
+  let h = 0;
+  for (const c of name.toLowerCase()) {
+    h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  }
+  h %= 360;
+
+  return `<span class="av" style="background:hsl(${h} 45% 30%);border-color:hsl(${h} 60% 55%)">${esc(name.charAt(0).toUpperCase())}</span>`;
+}
+
+function card(m) {
+  const done = m.status !== 'upcoming';
+  const win = !done ? 0 : m.s1 > m.s2 ? 1 : m.s2 > m.s1 ? 2 : 0;
+
+  const row = (name, score, me) =>
+    `<div class="row ${win && win !== me ? 'lose' : ''}">
+      ${avatar(name)}
+      <span class="nm">${esc(name)}</span>
+      <span class="sc">${done ? score : ''}</span>
+      <i class="ar ${win === me ? 'on' : ''}"></i>
+    </div>`;
+
+  const dl = esc(dateLabel(m.d));
+  const tm = m.time ? `<div class="tm">${esc(m.time)}</div>` : '';
+
+  /* VIDEO LINK BUTTON DISPLAY */
+  const videoBtn = m.video
+    ? `<a class="video-btn"
+         href="${esc(m.video)}"
+         target="_blank"
+         rel="noopener noreferrer">▶ WATCH MATCH VIDEO</a>`
+    : '';
+
+  const side = m.status === 'ft'
+    ? `<div class="st">FT</div><div class="dt">${dl}</div>${tm}`
+    : m.status === 'live'
+    ? `<div class="st live"><b></b>LIVE</div><div class="dt">${dl}</div>${tm}`
+    : `<div class="dt big">${dl}</div>${tm}`;
+
+  return `<article class="m">
+    <div class="players">
+      ${row(m.p1, m.s1, 1)}
+      ${row(m.p2, m.s2, 2)}
+      ${videoBtn}
+    </div>
+    <div class="side">${side}</div>
+  </article>`;
+}
+
+const gd = n => n > 0 ? '+' + n : String(n);
+const state = { tab: 'matches', filter: 'all' };
+const data = prepare(MATCHES);
+
+function renderMatches() {
+  const f = state.filter;
+
+  const shown = data.list.filter(m =>
+    f === 'all' ||
+    (f === 'results' ? m.status === 'ft' : m.status !== 'ft')
+  );
+
+  const chips = [['all', 'All'], ['results', 'Results'], ['upcoming', 'Upcoming']]
+    .map(([k, l]) =>
+      `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${l}</button>`
+    ).join('');
+
+  return `<div class="chips">${chips}</div>` +
+    (shown.length ? shown.map(card).join('') : '<div class="empty">Match onnum illa</div>');
+}
+
+function renderTable() {
+  const rows = computeTable(data.list);
+
+  if (!rows.length) {
+    return '<div class="empty">Match add cheythal table ivide varum</div>';
+  }
+
+  const lead = rows[0];
+
+  const leader = lead.mp > 0
+    ? `<div class="leader">
+        ${avatar(lead.name)}
+        <div>
+          <div class="lt">League top pointer </div>
+          <div class="ln">${esc(lead.name)}</div>
+        </div>
+        <div class="lp"><b>${lead.pts}</b><small>points</small></div>
+      </div>`
+    : '';
+
+  const body = rows.map((r, i) =>
+    `<tr class="${i === 0 && r.mp > 0 ? 'lead' : ''}">
+      <td>${i + 1}</td>
+      <td>${esc(r.name)}</td>
+      <td>${r.mp}</td>
+      <td>${r.w}</td>
+      <td>${r.d}</td>
+      <td>${r.l}</td>
+      <td>${r.gf}</td>
+      <td>${r.ga}</td>
+      <td class="${r.gd > 0 ? 'pos' : r.gd < 0 ? 'neg' : ''}">${gd(r.gd)}</td>
+      <td class="p">${r.pts}</td>
+    </tr>`
+  ).join('');
+
+  return `${leader}
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>POS</th><th>PLAYER</th><th>MP</th><th>W</th>
+            <th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+    <p class="legend">
+      MP Played · W Win · D Draw · L Loss · GF Goals For · GA Goals Against · GD Goal Difference · PTS Points<br>
+      Win 3 points, Draw 1, Loss 0. FT (kazhinja) match mathram count cheyyum.
+    </p>`;
+}
+
+function render() {
+  $('#title').textContent = LEAGUE_NAME;
+  $('#season').textContent = SEASON;
+  document.title = LEAGUE_NAME;
+
+  $('#tabMatches').classList.toggle('on', state.tab === 'matches');
+  $('#tabTable').classList.toggle('on', state.tab === 'table');
+
+  const problems = data.problems.length
+    ? `<div class="problems"><b>Ee match-ukal check cheyyuka (kaanikkunnilla):</b>${data.problems.map(esc).join('<br>')}</div>`
+    : '';
+
+  $('#app').innerHTML = problems +
+    (state.tab === 'matches' ? renderMatches() : renderTable());
+}
+
+$('#tabMatches').onclick = () => {
+  state.tab = 'matches';
+  render();
+};
+
+$('#tabTable').onclick = () => {
+  state.tab = 'table';
+  render();
+};
+
+$('#app').addEventListener('click', e => {
+  const c = e.target.closest('[data-filter]');
+  if (c) {
+    state.filter = c.dataset.filter;
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
